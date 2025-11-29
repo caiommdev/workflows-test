@@ -4,6 +4,7 @@ on: [push]
 jobs:
   env-demo:
     runs-on: ubuntu-latest
+    environment: staging
     
     steps:
       - name: Display Environment Variable
