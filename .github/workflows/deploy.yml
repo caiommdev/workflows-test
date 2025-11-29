@@ -1,0 +1,50 @@
+name: Deploy Simplificado
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Deploy para ${{ matrix.environment }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        environment: [dev, staging, prod]
+
+    environment:
+      name: ${{ matrix.environment }}
+
+    steps:
+      - name: 1. Checkout do código
+        uses: actions/checkout@v4
+
+      - name: 2. Simular Deploy
+        env:
+          DEV_TOKEN: ${{ secrets.DEV_TOKEN }}
+          STAGING_TOKEN: ${{ secrets.STAGING_TOKEN }}
+          PROD_TOKEN: ${{ secrets.PROD_TOKEN }}
+        run: |
+          echo "Iniciando deploy para o ambiente ${{ matrix.environment }}..."
+
+          # Define a variável do token a ser usada com base no ambiente da matriz
+          if [[ "${{ matrix.environment }}" == "dev" ]]; then
+            TOKEN=$DEV_TOKEN
+          elif [[ "${{ matrix.environment }}" == "staging" ]]; then
+            TOKEN=$STAGING_TOKEN
+          elif [[ "${{ matrix.environment }}" == "prod" ]]; then
+            TOKEN=$PROD_TOKEN
+          fi
+
+          # Verifica se o token foi carregado (não exibe o valor do token)
+          if [ -n "$TOKEN" ]; then
+            echo "Token de autenticação carregado."
+          else
+            echo "Token para o ambiente ${{ matrix.environment }} não encontrado."
+            exit 1
+          fi
+          
+          # Simula um comando de deploy
+          echo "Executando comando de deploy..."
+          echo "Deploy em ${{ matrix.environment }} concluído com sucesso."
