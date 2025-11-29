@@ -1,0 +1,14 @@
+name: Environment Demo
+on: [push]
+
+jobs:
+  env-demo:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Display Environment Variable
+        env:
+          DEPLOY_ENV: ${{ vars.DEPLOY_ENV }}
+        run: |
+          echo "Deploy Environment: $DEPLOY_ENV"
+          echo "DEPLOY_ENV is set to: ${{ vars.DEPLOY_ENV }}"

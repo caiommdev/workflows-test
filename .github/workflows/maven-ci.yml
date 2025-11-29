@@ -1,0 +1,27 @@
+name: Maven CI
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Setup JDK
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: maven
+    
+    - name: Verify pom.xml exists
+      run: |
+        pwd
+        ls -la
+        file pom.xml
+        head -20 pom.xml
+
+    - name: Build with Maven
+      run: mvn clean install
