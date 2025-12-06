@@ -1,27 +1,82 @@
-name: Maven CI
-on: [push, pull_request]
+name: Maven CI with Artifact Management
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
+    
     steps:
-    - name: Checkout Code
-      uses: actions/checkout@v4
-
-    - name: Setup JDK
-      uses: actions/setup-java@v4
+    - name: Checkout código
+      uses: actions/checkout@v3
+    
+    - name: Configurar JDK 17
+      uses: actions/setup-java@v3
       with:
         java-version: '17'
         distribution: 'temurin'
         cache: maven
     
-    - name: Verify pom.xml exists
-      run: |
-        pwd
-        ls -la
-        file pom.xml
-        head -20 pom.xml
+    - name: Build com Maven
+      run: mvn clean package -DskipTests
+    
+    - name: Upload do artefato JAR
+      uses: actions/upload-artifact@v3
+      with:
+        name: application-jar
+        path: target/*.jar
+        retention-days: 5
+        if-no-files-found: error
 
-    - name: Build with Maven
-      run: mvn clean install
+  verify-artifact:
+    runs-on: ubuntu-latest
+    needs: build
+    
+    steps:
+    - name: Download do artefato
+      uses: actions/download-artifact@v3
+      with:
+        name: application-jar
+        path: ./artifacts
+    
+    - name: Listar artefatos baixados
+      run: |
+        echo "Artefatos baixados:"
+        ls -lh ./artifacts/
+    
+    - name: Verificar integridade do JAR
+      run: |
+        JAR_FILE=$(find ./artifacts -name "*.jar" | head -n 1)
+        if [ -z "$JAR_FILE" ]; then
+          echo "::error::Nenhum arquivo JAR encontrado!"
+          exit 1
+        fi
+        
+        echo "Verificando arquivo: $JAR_FILE"
+        FILE_SIZE=$(stat -f%z "$JAR_FILE" 2>/dev/null || stat -c%s "$JAR_FILE")
+        
+        if [ "$FILE_SIZE" -lt 1000 ]; then
+          echo "::error::Arquivo JAR muito pequeno ($FILE_SIZE bytes). Possível problema no build."
+          exit 1
+        fi
+        
+        echo "::notice::Artefato verificado com sucesso! Tamanho: $FILE_SIZE bytes"
+        
+    - name: Validar estrutura do JAR
+      run: |
+        JAR_FILE=$(find ./artifacts -name "*.jar" | head -n 1)
+        
+        # Instalar unzip se necessário
+        if ! command -v unzip &> /dev/null; then
+          apt-get update && apt-get install -y unzip
+        fi
+        
+        # Listar conteúdo do JAR
+        echo "Conteúdo do JAR:"
+        unzip -l "$JAR_FILE" | head -n 20
+        
+        # Ver

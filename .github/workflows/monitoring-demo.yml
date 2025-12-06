@@ -1,0 +1,175 @@
+
+name: Monitoring and Debugging Demo
+
+on:
+  workflow_dispatch:
+    inputs:
+      simulate_failure:
+        description: 'Simular falha no workflow'
+        required: false
+        type: boolean
+        default: false
+      check_type:
+        description: 'Tipo de verificação'
+        required: true
+        type: choice
+        options:
+          - all
+          - dependencies
+          - security
+          - performance
+
+jobs:
+  monitoring-demo:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout código
+      uses: actions/checkout@v3
+    
+    - name: Inicializar resumo do job
+      run: |
+        echo "# 📊 Relatório de Monitoramento" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Data:** $(date '+%Y-%m-%d %H:%M:%S')" >> $GITHUB_STEP_SUMMARY
+        echo "**Workflow:** ${{ github.workflow }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Executado por:** ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Tipo de verificação:** ${{ inputs.check_type }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+    
+    - name: Verificação de Dependências
+      if: inputs.check_type == 'all' || inputs.check_type == 'dependencies'
+      run: |
+        echo "::group::Verificando dependências"
+        
+        echo "::notice::Iniciando verificação de dependências..."
+        
+        # Simular verificação
+        OUTDATED_DEPS=2
+        
+        if [ $OUTDATED_DEPS -gt 0 ]; then
+          echo "::warning::Encontradas $OUTDATED_DEPS dependências desatualizadas"
+          
+          echo "## ⚠️ Dependências Desatualizadas" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Dependência | Versão Atual | Versão Mais Recente |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------------|--------------|---------------------|" >> $GITHUB_STEP_SUMMARY
+          echo "| spring-boot | 2.7.0 | 3.2.0 |" >> $GITHUB_STEP_SUMMARY
+          echo "| junit | 4.13.2 | 5.10.1 |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "::notice::Todas as dependências estão atualizadas ✓"
+          echo "## ✅ Dependências" >> $GITHUB_STEP_SUMMARY
+          echo "Todas as dependências estão atualizadas." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        echo "::endgroup::"
+    
+    - name: Verificação de Segurança
+      if: inputs.check_type == 'all' || inputs.check_type == 'security'
+      run: |
+        echo "::group::Análise de segurança"
+        
+        # Simular scan de segurança
+        VULNERABILITIES=1
+        
+        if [ $VULNERABILITIES -gt 0 ]; then
+          echo "::warning::Encontradas $VULNERABILITIES vulnerabilidades"
+          
+          echo "## 🔒 Vulnerabilidades de Segurança" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Severidade | CVE | Componente | Ação Recomendada |" >> $GITHUB_STEP_SUMMARY
+          echo "|------------|-----|------------|------------------|" >> $GITHUB_STEP_SUMMARY
+          echo "| MEDIUM | CVE-2023-12345 | log4j | Atualizar para v2.20.0 |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "::notice::Nenhuma vulnerabilidade crítica encontrada ✓"
+          echo "## ✅ Segurança" >> $GITHUB_STEP_SUMMARY
+          echo "Nenhuma vulnerabilidade crítica detectada." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        echo "::endgroup::"
+    
+    - name: Verificação de Performance
+      if: inputs.check_type == 'all' || inputs.check_type == 'performance'
+      run: |
+        echo "::group::Métricas de performance"
+        
+        # Simular métricas
+        BUILD_TIME=45
+        ARTIFACT_SIZE=15
+        
+        echo "## 📈 Métricas de Performance" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "| Métrica | Valor | Status |" >> $GITHUB_STEP_SUMMARY
+        echo "|---------|-------|--------|" >> $GITHUB_STEP_SUMMARY
+        echo "| Tempo de Build | ${BUILD_TIME}s | ✅ |" >> $GITHUB_STEP_SUMMARY
+        echo "| Tamanho do Artefato | ${ARTIFACT_SIZE}MB | ✅ |" >> $GITHUB_STEP_SUMMARY
+        echo "| Cobertura de Testes | 78% | ⚠️ |" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        if [ $BUILD_TIME -gt 60 ]; then
+          echo "::warning::Tempo de build acima do esperado (${BUILD_TIME}s). Considere otimizar o processo."
+        fi
+        
+        if [ $ARTIFACT_SIZE -gt 50 ]; then
+          echo "::warning::Artefato muito grande (${ARTIFACT_SIZE}MB). Considere remover dependências não utilizadas."
+        fi
+        
+        echo "::endgroup::"
+    
+    - name: Diagnóstico Automatizado de Falhas
+      if: inputs.simulate_failure
+      run: |
+        echo "::group::Diagnóstico de Falha"
+        
+        # Simular condição de falha
+        CONDITION_MET=false
+        
+        if [ "$CONDITION_MET" = false ]; then
+          echo "::error::Falha detectada na verificação de condições"
+          
+          echo "## ❌ Falha Detectada" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Diagnóstico" >> $GITHUB_STEP_SUMMARY
+          echo "A condição esperada não foi atendida." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Possíveis Causas" >> $GITHUB_STEP_SUMMARY
+          echo "1. Configuração incorreta no ambiente" >> $GITHUB_STEP_SUMMARY
+          echo "2. Dependências faltando" >> $GITHUB_STEP_SUMMARY
+          echo "3. Falha em step anterior" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Sugestões de Correção" >> $GITHUB_STEP_SUMMARY
+          echo "- Verifique os logs dos steps anteriores" >> $GITHUB_STEP_SUMMARY
+          echo "- Confirme que todas as variáveis de ambiente estão configuradas" >> $GITHUB_STEP_SUMMARY
+          echo "- Execute o comando \`mvn clean install\` localmente para reproduzir" >> $GITHUB_STEP_SUMMARY
+          echo "- Consulte a documentação em [README.md](../README.md)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          echo "::endgroup::"
+          exit 1
+        fi
+    
+    - name: Resumo Final
+      if: always()
+      run: |
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "---" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 📋 Resumo da Execução" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        if [ "${{ job.status }}" = "success" ]; then
+          echo "✅ **Status:** Sucesso" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Todas as verificações foram concluídas com sucesso!" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "❌ **Status:** Falha" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Algumas verificações falharam. Consulte os detalhes acima." >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Tempo de execução:** $(date '+%H:%M:%S')" >> $GITHUB_STEP_SUMMARY
