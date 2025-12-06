@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: tp2
+  name: devcalc-deployment
+spec:
+  selector:
+    matchLabels:
+      app: devcalc-api
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: devcalc-api
+    spec:
+      containers:
+      - name: devcalc-api
+        image: caiommd/devcalc-api:0.0.1-SNAPSHOT
+        ports:
+        - containerPort: 80
+        
+        readinessProbe:
+          httpGet:
+            path: /ping
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          failureThreshold: 3
+
+        livenessProbe:
+          httpGet:
+            path: /ping
+            port: 80
+          initialDelaySeconds: 15
+          periodSeconds: 20
+          failureThreshold: 3

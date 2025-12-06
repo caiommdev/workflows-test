@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  devcalc-api:
+    build: .
+    container_name: devcalc-api
+    ports:
+      - "8080:8080"
+    networks:
+      - devcalc-net
+    depends_on:
+      postgres-db:
+        condition: service_healthy
+      redis-cache:
+        condition: service_healthy
+
+  postgres-db:
+    image: postgres:15-alpine
+    container_name: postgres-db
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=devcalcdb
+    volumes:
+      - shared-data:/shared-data
+    networks:
+      - devcalc-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d devcalcdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis-cache:
+    image: redis:7-alpine
+    container_name: redis-cache
+    volumes:
+      - shared-data:/shared-data
+    networks:
+      - devcalc-net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  tester:
+    image: busybox
+    container_name: tester
+    command: ["sleep", "infinity"]
+    networks:
+      - devcalc-net
+
+networks:
+  devcalc-net:
+    driver: bridge
+
+volumes:
+  shared-data:
